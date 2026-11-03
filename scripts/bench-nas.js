@@ -5,7 +5,7 @@ const path = require('path');
 const scanner = require('../src/main/scanner');
 const { detectSize, isImageName } = require('../src/main/imagedim');
 
-const ROOT = process.argv[2] || '/Volumes/NANas._smb._tcp.local/pic/非常運動';
+const ROOT = process.argv[2] || '/Volumes/NAS/Comics';
 
 async function oldScan(root) {
   const files = [];

@@ -1,9 +1,8 @@
-release/
-release/.mac-arm64-build/
-testdata/大目录测试/
-testdata/manifest.json
+# 构建产物目录（只发布 dmg 安装包）
+release/*
+!release/*.dmg
 
-# 依赖与构建产物
+# 依赖与本地数据
 node_modules/
 src/renderer/vendor/
 shots/
