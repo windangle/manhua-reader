@@ -1,0 +1,67 @@
+{
+  "name": "manhua-reader",
+  "version": "0.4.0",
+  "description": "本地/网络漫画阅读器 - 长图连续滚动阅读",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "dist": "electron-builder",
+    "dist:dir": "electron-builder --dir",
+    "make:data": "node scripts/make-testdata.js && cd testdata && zip -qr 测试压缩包.cbz 测试漫画",
+    "seed": "node scripts/seed-library.js",
+    "dav:server": "node scripts/dav-test-server.js",
+    "icon": "node scripts/make-icon.js",
+    "make:docs": "node scripts/make-docs.js",
+    "postinstall": "node scripts/sync-vendor.js"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^26.18.0",
+    "pdfjs-dist": "^4.10.38"
+  },
+  "dependencies": {
+    "yauzl": "^3.2.0"
+  },
+  "productName": "漫画书架",
+  "build": {
+    "appId": "com.virgil.manhua.reader",
+    "productName": "漫画书架",
+    "copyright": "Copyright © 2026",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "src/**/*",
+      "package.json"
+    ],
+    "mac": {
+      "category": "public.app-category.books",
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "icon": "build/icon.png",
+      "darkModeSupport": true
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "build/icon.png"
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "icon": "build/icon.png",
+      "category": "Graphics"
+    },
+    "npmRebuild": false,
+    "afterAllArtifactBuild": "scripts/after-build.js"
+  }
+}

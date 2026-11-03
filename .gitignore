@@ -1,0 +1,11 @@
+release/
+release/.mac-arm64-build/
+testdata/大目录测试/
+testdata/manifest.json
+
+# 依赖与构建产物
+node_modules/
+src/renderer/vendor/
+shots/
+testdata/
+.DS_Store

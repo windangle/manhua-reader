@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; img-src 'self' comic: data: blob:; style-src 'self' 'unsafe-inline' blob:; script-src 'self' blob:; worker-src 'self' blob:; connect-src 'self' comic: blob: data:; font-src 'self' data: comic: blob:; media-src 'self' comic: data: blob:; frame-src 'self' blob: comic:" />
+  <title>漫画书架</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- ============ 书架 ============ -->
+    <section id="library-view" class="view">
+      <header class="app-bar">
+        <div class="title-wrap">
+          <h1>漫画书架</h1>
+          <span id="lib-count" class="muted"></span>
+        </div>
+        <div class="spacer"></div>
+        <input id="search" class="search" type="search" placeholder="搜索漫画…" autocomplete="off" />
+        <button id="btn-new-folder" class="btn" title="新建收藏夹，把书分类放进去">📁 新建文件夹</button>
+        <button id="btn-cache" class="btn icon-only" title="清理缓存（APP 不复制漫画文件，仅有少量缓存）">🧹</button>
+        <span id="app-version" class="ver-chip" title="版本信息">v–</span>
+        <div class="add-wrap">
+          <button id="btn-add" class="btn primary">＋ 添加漫画</button>
+          <div id="add-menu" class="dropdown hidden">
+            <button data-act="folder"><span class="di">📁</span>本地文件夹</button>
+            <button data-act="zip"><span class="di">🗜</span>本地压缩包 (zip / cbz)</button>
+            <button data-act="dav"><span class="di">☁️</span>WebDAV 网络存储</button>
+            <button data-act="doc"><span class="di">📕</span>电子书 (PDF / EPUB / MOBI / AZW3)</button>
+            <button data-act="doc-series-folder"><span class="di">📚</span>电子书合集（选文件夹，多卷合一）</button>
+            <button data-act="doc-series-files"><span class="di">🧩</span>电子书合集（多选文件合一）</button>
+          </div>
+        </div>
+      </header>
+
+      <main id="lib-grid" class="grid"></main>
+
+      <div id="lib-empty" class="empty hidden">
+        <div class="empty-art">📚</div>
+        <h2>书架还是空的</h2>
+        <p>添加本地文件夹、压缩包，或连接到 WebDAV 网络存储开始阅读。</p>
+        <button id="btn-add-empty" class="btn primary">＋ 添加漫画</button>
+      </div>
+    </section>
+
+    <!-- ============ 阅读器 ============ -->
+    <section id="reader-view" class="reader hidden">
+      <header id="reader-top" class="reader-bar">
+        <button id="r-back" class="icon-btn" title="返回书架 (Esc)">‹</button>
+        <div class="r-title">
+          <span id="r-name"></span>
+          <span id="r-page" class="muted"></span>
+        </div>
+        <div class="spacer"></div>
+        <button id="r-toc" class="icon-btn hidden" title="目录">☰</button>
+        <div class="dir-ctl" id="r-dir" title="阅读方向">
+          <button data-dir="down" title="向下阅读：竖排长图，向下翻页">↓</button>
+          <button data-dir="left" title="向左阅读：横排，向左翻页（第 1 页在最右侧，日漫习惯）">←</button>
+          <button data-dir="right" title="向右阅读：横排，向右翻页（第 1 页在最左侧）">→</button>
+        </div>
+        <div class="zoom-ctl">
+          <button id="r-zoom-out" class="icon-btn" title="缩小 (Cmd -)">－</button>
+          <input id="r-zoom-range" type="range" min="30" max="300" step="5" value="100" />
+          <button id="r-zoom-in" class="icon-btn" title="放大 (Cmd +)">＋</button>
+          <button id="r-zoom-label" class="zoom-label" title="点击复位为适应窗口宽度">100%</button>
+          <button id="r-bg" class="icon-btn" title="切换浅色 / 深色背景">◐</button>
+          <button id="r-full" class="icon-btn" title="沉浸模式：隐藏工具栏 (H)">⤢</button>
+        </div>
+      </header>
+
+      <button id="r-immersive-exit" class="immersive-exit" title="退出沉浸模式 (H)">⤢ 退出沉浸模式 · 按 H 也可退出</button>
+
+      <div id="reader-notice" class="reader-notice hidden"></div>
+
+      <div id="scroller" class="scroller">
+        <div id="strip" class="strip"></div>
+        <div id="reader-loading" class="reader-loading hidden"><span class="spinner"></span><span id="reader-loading-text">正在打开…</span></div>
+      </div>
+
+      <footer id="reader-bottom" class="reader-bar bottom">
+        <button id="r-prev" class="btn ghost">‹ 上一页</button>
+        <input id="r-slider" type="range" min="1" max="1" step="1" value="1" />
+        <div class="page-jump">
+          <input id="r-page-input" type="number" min="1" value="1" />
+          <span id="r-page-total" class="muted">/ 1</span>
+        </div>
+        <button id="r-next" class="btn ghost">下一页 ›</button>
+      </footer>
+    </section>
+  </div>
+
+  <!-- 扫描进度 -->
+  <div id="scan-modal" class="scan-backdrop hidden">
+    <div class="scan-card">
+      <div class="scan-head" id="scan-title">正在添加漫画</div>
+      <div class="scan-target" id="scan-target"></div>
+      <div class="scan-phase"><span class="spinner"></span><span id="scan-phase">正在读取目录…</span></div>
+      <div class="scan-count"><b id="scan-count">0</b><span>张图片</span></div>
+      <div class="scan-sub" id="scan-sub"></div>
+      <div class="scan-tip" id="scan-tip"></div>
+      <div class="scan-foot">
+        <button id="scan-bg" class="btn">放到后台继续</button>
+        <button id="scan-close" class="btn primary hidden">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-root"></div>
+  <div id="toast-root"></div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
