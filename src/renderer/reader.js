@@ -128,6 +128,14 @@ export class Reader {
     }, { passive: false });
 
     window.addEventListener('resize', () => this._onResize());
+    // 阅读区尺寸变化时重新排版：跨屏拖动、显示缩放比例变化时都不会残留黑边
+    if (typeof ResizeObserver !== 'undefined') {
+      this._ro = new ResizeObserver(() => {
+        if (this._roTimer) return;
+        this._roTimer = setTimeout(() => { this._roTimer = null; this._onResize(); }, 60);
+      });
+      this._ro.observe(this.els.scroller);
+    }
     window.addEventListener('mousemove', (ev) => this._onMouseMove(ev));
     document.addEventListener('keydown', (ev) => this._onKey(ev));
 
@@ -183,7 +191,8 @@ export class Reader {
   async open(manga, settings) {
     this.manga = manga;
     this.pages = manga.pages || [];
-    this.zoom = (settings && settings.zoom) || 1;
+    // 每次打开都从 100%（铺满窗口宽度）开始
+    this.zoom = 1;
     this.direction = DIRECTIONS[manga.direction] ? manga.direction : 'down';
     this.current = 0;
     this.offset = 0;
@@ -195,6 +204,7 @@ export class Reader {
     e.slider.max = String(Math.max(1, this.pages.length));
     e.pageInput.max = String(Math.max(1, this.pages.length));
     e.zoomRange.value = String(Math.round(this.zoom * 100));
+    e.zoomLabel.textContent = Math.round(this.zoom * 100) + '%';
     const lt = document.getElementById('reader-loading-text');
     if (lt) lt.textContent = `正在准备 ${this.pages.length} 页…`;
     e.loading.classList.remove('hidden');
@@ -676,8 +686,23 @@ export class Reader {
 
   _onResize() {
     if (this.els.view.classList.contains('hidden')) return;
+    if (!this.pageEls.length) return;
+    const before = this.offsets[this.current]
+      ? (this.direction === 'down' ? this.offsets[this.current].top : this.offsets[this.current].left)
+      : null;
     this._applyLayout();
-    this._restore({ index: this.current, offset: this.offset });
+    // 尺寸变了就重新定位到当前页，避免跳位
+    if (before !== null) {
+      const after = this.offsets[this.current]
+        ? (this.direction === 'down' ? this.offsets[this.current].top : this.offsets[this.current].left)
+        : null;
+      if (after !== null) {
+        if (this.direction === 'down') this.els.scroller.scrollTop = Math.max(0, after + (this.offset * (this.pageEls[this.current] ? this.pageEls[this.current].offsetHeight : 0)));
+        else this.els.scroller.scrollLeft = Math.max(0, after);
+      }
+    } else {
+      this._restore({ index: this.current, offset: this.offset });
+    }
   }
 
   /* ------------------------- 目录（电子书） ------------------------- */
@@ -739,7 +764,7 @@ export class Reader {
       // 缩放后保持当前阅读位置
       this._restore({ index: this.current, offset: this.offset });
     }
-    if (window.api && window.api.settings) window.api.settings.set({ zoom: this.zoom });
+
   }
 
   /* ------------------------- 背景 / 沉浸 ------------------------- */
