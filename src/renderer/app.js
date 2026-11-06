@@ -75,11 +75,16 @@ function renderLibrary() {
   }
 }
 
-/** 渲染一个收藏夹 */
+/**
+ * 渲染一个收藏夹（卡片形态，和书卡同尺寸）
+ * 返回 DocumentFragment：文件夹卡片本身占一格，展开后里面的书占下一整行
+ */
 function renderFolder(folder, byId, matchedIds, q) {
   const items = (folder.items || []).map((id) => byId.get(id)).filter(Boolean)
     .filter((m) => matchedIds.has(m.id) || !q);
-  const wrap = el('section', {
+  const frag = document.createDocumentFragment();
+
+  const card = el('div', {
     class: 'folder',
     'data-folder-id': folder.id,
   });
@@ -91,23 +96,31 @@ function renderFolder(folder, byId, matchedIds, q) {
     'data-drag-id': folder.id,
     draggable: 'true',
   }, [
-    el('span', { class: 'folder-caret', text: folder.collapsed ? '▸' : '▾' }),
-    el('span', { class: 'folder-ico', text: '📁' }),
-    el('span', { class: 'folder-name', text: folder.name }),
-    el('span', { class: 'folder-count', text: `${items.length} 本` }),
+    el('div', { class: 'folder-cover' }, [
+      el('span', { class: 'folder-emoji', text: '\u{1F4C1}' }),
+      el('span', { class: 'badge folder-badge', text: `${items.length} 本` }),
+    ]),
+    el('div', { class: 'card-body' }, [
+      el('div', { class: 'card-title folder-name', text: folder.name }),
+      el('div', { class: 'card-meta' }, [
+        el('span', { class: 'folder-count', text: `${items.length} 本` }),
+        el('span', { text: folder.collapsed ? '已折叠' : '展开中' }),
+      ]),
+    ]),
   ]);
+  // 点卡片即展开/收起（菜单按钮除外）
   head.addEventListener('click', (e) => {
-    if (e.target.closest('.folder-caret') || e.target.closest('.folder-name')) {
-      window.api.library.updateFolder(folder.id, { collapsed: !folder.collapsed }).then(refreshLibrary);
-    }
+    if (e.target.closest('.folder-menu')) return;
+    window.api.library.updateFolder(folder.id, { collapsed: !folder.collapsed }).then(refreshLibrary);
   });
-  const menuBtn = el('button', { class: 'folder-menu', text: '⋯', title: '文件夹操作' });
+  const menuBtn = el('button', { class: 'card-menu folder-menu', text: '\u22EF', title: '文件夹操作' });
   menuBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     openFolderMenu(e.currentTarget, folder);
   });
   head.appendChild(menuBtn);
-  wrap.appendChild(head);
+  card.appendChild(head);
+  frag.appendChild(card);
 
   if (!folder.collapsed) {
     const body = el('div', {
@@ -119,9 +132,9 @@ function renderFolder(folder, byId, matchedIds, q) {
       body.appendChild(el('div', { class: 'folder-empty', text: '把书拖进来，或用卡片菜单「移动到文件夹」' }));
     }
     for (const m of items) body.appendChild(renderCard(m));
-    wrap.appendChild(body);
+    frag.appendChild(body);
   }
-  return wrap;
+  return frag;
 }
 
 /** 渲染一本书的卡片 */

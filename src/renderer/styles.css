@@ -103,35 +103,36 @@ button, input, select { font: inherit; color: inherit; }
 }
 .grid.drop-root { outline: 1px dashed var(--accent); outline-offset: -8px; }
 
-/* ---------------- 收藏夹 ---------------- */
+/* ---------------- 收藏夹（卡片形态） ---------------- */
 .folder {
-  grid-column: 1 / -1;
   background: var(--bg-soft);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  padding: 10px 12px 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform .16s ease, box-shadow .16s ease, border-color .16s;
+  position: relative;
 }
-.folder-head {
-  display: flex; align-items: center; gap: 8px;
-  padding: 4px 6px 8px; cursor: grab; user-select: none;
-  border-radius: 8px;
-}
+.folder:hover { transform: translateY(-3px); box-shadow: var(--shadow); border-color: #3a4154; }
+.folder-head { position: relative; cursor: grab; user-select: none; }
 .folder-head:active { cursor: grabbing; }
-.folder-caret { width: 14px; color: var(--muted); font-size: 11px; }
-.folder-ico { font-size: 14px; }
-.folder-name { font-weight: 600; font-size: 14px; }
-.folder-count { font-size: 11.5px; color: var(--muted); }
-.folder-menu {
-  margin-left: auto; width: 26px; height: 26px; border: 0; border-radius: 8px;
-  background: transparent; color: var(--muted); cursor: pointer; opacity: .6;
+.folder-cover {
+  width: 100%; aspect-ratio: 3 / 4; background: #0f1116;
+  display: flex; align-items: center; justify-content: center; font-size: 44px;
+  position: relative;
 }
-.folder-menu:hover { background: #2b3040; opacity: 1; }
+.folder-emoji { line-height: 1; }
+.folder-badge { left: auto; right: 6px; }
+.folder .card-body { padding: 9px 11px 11px; }
+.folder .folder-name { font-weight: 600; font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.folder .folder-count { font-size: 11.5px; color: var(--muted); }
 .folder-body {
+  grid-column: 1 / -1;                 /* 展开后独占一整行 */
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   grid-auto-rows: min-content;
-  gap: 16px; padding: 4px 0 2px 18px;
-  border-left: 1px solid var(--line); margin-left: 6px;
+  gap: 16px; padding: 10px 0 4px 16px;
+  border-left: 2px solid var(--line); margin-left: 10px;
   min-height: 30px;
 }
 .folder-empty { grid-column: 1 / -1; color: var(--muted); font-size: 12.5px; padding: 8px 4px; }
