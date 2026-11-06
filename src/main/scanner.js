@@ -13,6 +13,20 @@ const DEFAULT_RATIO = 800 / 1200;          // 宽/高，作为未探测页面的
 const PROBE_LIMIT = { local: 60, net: 24 }; // 扫描阶段最多探测多少页的尺寸
 const WALK_CONCURRENCY = { local: 32, net: 12 };
 
+/**
+ * 压缩包里的垃圾条目，直接忽略：
+ * - macOS 压缩会带上 __MACOSX/ 目录和 ._ 开头的资源叉文件（几百字节的伪图片）
+ * - 还会带上 .DS_Store；Windows 压缩会带 Thumbs.db、desktop.ini
+ * 它们扩展名同样是 .jpg/.png，混进来会霸占首页，并让封面和正文打不开。
+ */
+function isJunkEntry(name) {
+  const parts = name.split('/');
+  const base = parts[parts.length - 1];
+  if (base.startsWith('._')) return true;
+  if (base === '.DS_Store' || base === 'Thumbs.db' || base === 'desktop.ini') return true;
+  return parts.some((p) => p === '__MACOSX');
+}
+
 /** 是否是网络挂载路径（SMB/AFP/NFS 等），决定并发与探测策略 */
 function isNetworkPath(p) {
   if (!p) return false;
@@ -93,7 +107,7 @@ async function scanFolder(root, opts = {}) {
           } catch (_) { continue; }
         }
         if (type === 'dir') queue.push({ dir: abs, rel: relPath });
-        else if (type === 'file' && isImageName(ent.name)) files.push({ abs, relPath });
+        else if (type === 'file' && isImageName(ent.name) && !isJunkEntry(ent.name)) files.push({ abs, relPath });
       }
       onProgress({ phase: 'listing', files: files.length, dirs, target: root });
     }
@@ -160,7 +174,7 @@ async function scanZip(zipPath, opts = {}) {
   onProgress({ phase: 'listing', files: 0, dirs: 0, target: zipPath });
   const reader = zipreader.getReader(zipPath);
   const entries = await reader.list();
-  const imgs = entries.filter((e) => !e.isDir && isImageName(e.name));
+  const imgs = entries.filter((e) => !e.isDir && isImageName(e.name) && !isJunkEntry(e.name));
   imgs.sort((a, b) => naturalCompare(a.name, b.name));
 
   const limit = Math.min(PROBE_LIMIT.local, imgs.length);

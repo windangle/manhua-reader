@@ -1,6 +1,6 @@
 {
   "name": "manhua-reader",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "本地/网络漫画阅读器 - 长图连续滚动阅读",
   "main": "main.js",
   "scripts": {

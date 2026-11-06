@@ -1,6 +1,6 @@
 # 漫画书架 · Manhua Reader
 
-> 当前版本 **v0.4.2**（更新记录见 [CHANGELOG.md](CHANGELOG.md)）
+> 当前版本 **v0.4.3**（更新记录见 [CHANGELOG.md](CHANGELOG.md)）
 
 一个本地优先的桌面漫画阅读 APP。支持把 **本地文件夹**、**本地压缩包（zip/cbz）**、**WebDAV 网络存储** 里的漫画和电子书加入书架，并以「一张长图」的方式连续向下滚动阅读。
 
@@ -33,7 +33,7 @@
 
 | 平台 | 文件 | 大小 |
 | --- | --- | --- |
-| macOS (Apple Silicon) | [漫画书架-0.4.2-arm64.dmg](release/漫画书架-0.4.2-arm64.dmg) | 约 95 MB |
+| macOS (Apple Silicon) | [漫画书架-0.4.3-arm64.dmg](release/漫画书架-0.4.3-arm64.dmg) | 约 95 MB |
 
 安装步骤：
 
@@ -105,6 +105,7 @@
 - EPUB / MOBI 有目录时，工具栏会出现 **☰ 目录** 按钮，可直接跳章
 - 电子书也支持三种阅读方向与沉浸模式；文字类建议用「↓ 向下阅读」
 - 缩放对文字书是缩放字号，对 PDF 是提高渲染分辨率
+- 兼容 macOS 压缩包：自动忽略 `__MACOSX/` 资源叉、`.DS_Store` 等系统垃圾文件，不会混进漫画页
 
 > 依赖与许可：`pdfjs-dist`（Apache-2.0）、`foliate-js`（MIT，见 `src/vendor/foliate/LICENSE`）
 
